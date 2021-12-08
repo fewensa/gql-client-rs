@@ -111,7 +111,7 @@ impl GQLClient {
       Ok(json) => {
         // Check if error messages have been received
         if json.errors.is_some() {
-          return Err(GraphQLError::from_json(json.errors.unwrap()));
+          return Err(GraphQLError::from_json(json.errors.unwrap_or_default()));
         }
 
         Ok(json.data)
