@@ -81,6 +81,21 @@ impl GQLClient {
     }
   }
 
+  #[cfg(target_arch = "wasm32")]
+  fn client(&self) -> Result<reqwest::Client, GraphQLError> {
+    Ok(Client::new())
+  }
+
+  #[cfg(not(target_arch = "wasm32"))]
+  fn client(&self) -> Result<reqwest::Client, GraphQLError> {
+    Ok(
+      Client::builder()
+        .timeout(std::time::Duration::from_secs(5))
+        .build()
+        .map_err(|e| GraphQLError::with_text(format!("Can not create client: {:?}", e)))?,
+    )
+  }
+
   pub async fn query_with_vars<K, T: Serialize>(
     &self,
     query: &str,
@@ -89,10 +104,7 @@ impl GQLClient {
   where
     K: for<'de> Deserialize<'de>,
   {
-    let client = Client::builder()
-      .timeout(std::time::Duration::from_secs(5))
-      .build()
-      .map_err(|e| GraphQLError::with_text(format!("Can not create client: {:?}", e)))?;
+    let client: reqwest::Client = self.client()?;
     let body = RequestBody {
       query: query.to_string(),
       variables,
