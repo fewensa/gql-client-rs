@@ -119,15 +119,16 @@ impl GQLClient {
       .headers(self.header_map.clone());
 
     let raw_response = request.send().await?;
+    let status = raw_response.status();
     let response_body_text = raw_response
       .text()
       .await
       .map_err(|e| GraphQLError::with_text(format!("Can not get response: {:?}", e)))?;
 
-    if !raw_response.status().is_success() {
+    if !status.is_success() {
       return Err(GraphQLError::with_text(format!(
         "The response is [{}]: {}",
-        raw_response.status().as_u16(),
+        status.as_u16(),
         response_body_text
       )));
     }
@@ -144,7 +145,7 @@ impl GQLClient {
       return Err(GraphQLError::with_json(json.errors.unwrap_or_default()));
     }
     if json.data.is_none() {
-      println!("RESPONSE: {}", response_body_text);
+      log::warn!(target: "gql-client", "The deserialized data is none, the response is: {}", response_body_text);
     }
 
     Ok(json.data)
