@@ -92,9 +92,10 @@ impl GQLClient {
   {
     match self.query_with_vars(query, variables).await? {
       Some(v) => Ok(v),
-      None => Err(GraphQLError::with_text(
-        "No data from graphql server for this query",
-      )),
+      None => Err(GraphQLError::with_text(format!(
+        "No data from graphql server({}) for this query",
+        self.endpoint
+      ))),
     }
   }
 
@@ -133,6 +134,9 @@ impl GQLClient {
     // Check if error messages have been received
     if json.errors.is_some() {
       return Err(GraphQLError::with_json(json.errors.unwrap_or_default()));
+    }
+    if json.data.is_none() {
+      println!("RESPONSE: {}", response_body_text);
     }
 
     Ok(json.data)
