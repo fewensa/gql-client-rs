@@ -124,6 +124,14 @@ impl GQLClient {
       .await
       .map_err(|e| GraphQLError::with_text(format!("Can not get response: {:?}", e)))?;
 
+    if !raw_response.status().is_success() {
+      return Err(GraphQLError::with_text(format!(
+        "The response is [{}]: {}",
+        raw_response.status().as_u16(),
+        response_body_text
+      )));
+    }
+
     let json: GraphQLResponse<K> = serde_json::from_str(&response_body_text).map_err(|e| {
       GraphQLError::with_text(format!(
         "Failed to parse response: {:?}. The response body is: {}",
