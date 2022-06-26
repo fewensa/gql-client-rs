@@ -35,12 +35,10 @@ impl GQLClient {
 
   #[cfg(not(target_arch = "wasm32"))]
   fn client(&self) -> Result<reqwest::Client, GraphQLError> {
-    Ok(
-      Client::builder()
-        .timeout(std::time::Duration::from_secs(5))
-        .build()
-        .map_err(|e| GraphQLError::with_text(format!("Can not create client: {:?}", e)))?,
-    )
+    Client::builder()
+      .timeout(std::time::Duration::from_secs(5))
+      .build()
+      .map_err(|e| GraphQLError::with_text(format!("Can not create client: {:?}", e)))
   }
 }
 
